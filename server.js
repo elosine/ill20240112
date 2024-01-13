@@ -15,7 +15,7 @@ httpServer.listen(PORT, () => console.log(`Listening on ${ PORT }`));
 //#ef SERVE STATIC FILES THROUGH EXPRESS
 app.use(express.static(path.join(__dirname, '/public')));
 app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, '/public/pieces/ill20231227/ill20231227.html'));
+  res.sendFile(path.join(__dirname, '/public/pieces/ill20240112/ill20240112.html'));
 });
 //#endef END SERVER STATIC FILES
 
