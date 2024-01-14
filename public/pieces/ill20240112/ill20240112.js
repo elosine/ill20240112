@@ -20,7 +20,7 @@ in func calcTimeline increase here:       let tCurPx = Math.round(frmIx * tempoO
 //#endef NOTES
 
 //#ef General Variables
-const TEMPO_COLORS = [clr_limeGreen, clr_mustard, clr_brightBlue, clr_brightOrange, clr_lavander, clr_darkRed2, clr_brightGreen, clr_lightGrey, clr_neonMagenta, clr_plum, clr_blueGrey];
+const TEMPO_COLORS = [clr_limeGreen, clr_mustard, clr_brightBlue, clr_brightOrange, clr_lavander, clr_darkRed2, clr_brightGreen, clr_lightGrey, clr_neonMagenta, clr_plum, clr_blueGrey, clr_lightGrey, clr_lightGreen];
 //Timing
 const FRAMERATE = 60;
 const MS_PER_FRAME = 1000.0 / FRAMERATE;
@@ -29,14 +29,14 @@ let FRAMECOUNT = 0;
 let WORLD_W; // Calculated later in notation variables; 9 beats of notation @ 105 pixels per beat
 let WORLD_H; //calculated later with notation variables
 let canvas = {}; // canvas.panel(jspanel); canvas.div(jspanel div); canvas.svg(svg container on top of canvas.div)
-let panelTitle = "Interactive Looping Line 20231227"
+let panelTitle = "Interactive Looping Line 20240112"
 //Notation Variables
 //File name LL20231212_SVG.svg; long single line svg notation with proportionate spacing
 //just draw several times 1 for each line and move it over
 //105 pixels per beat; 42 beats; 4410 x 109
 //9 beats per line; 945 pixels per line
-const NOTATION_FILE_NAME_PATH = '/pieces/ill20231227/notationSVGs/';
-const NOTATION_FILE_NAME = 'ILL20231227_SVG.svg';
+const NOTATION_FILE_NAME_PATH = '/pieces/ill20240112/notationSVGs/';
+const NOTATION_FILE_NAME = 'ILL20240112_SVG.svg';
 const PX_PER_BEAT = 105;
 const BEATS_PER_LINE = 9;
 const WHOLE_NOTATION_W = 4410;
