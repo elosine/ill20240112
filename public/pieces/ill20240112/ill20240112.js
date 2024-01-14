@@ -1,20 +1,8 @@
 //#ef NOTES
 /*
-Add 'A' or 'D' above accelerating or decelerating cursors
-Work on ictus
-
-which frame does a beat start on?
-
-
-Write new timeline function, that calculates the number of pixels traveled for each frame
-D = (initialVelocity * time) + ((acceleration * timeSquared )/2 )
-
-Redo Calculate timelines and build frame Array; accel by alterating tempo
-New tempi
-New Loops
-Accelerating Tempo/Loop Cursor
-For accel increase pxPerFrame for each frame in tempoConsts.pxPerFrame have a accel factor
-in func calcTimeline increase here:       let tCurPx = Math.round(frmIx * tempoObj.pxPerFrame);
+Make staff Rects, black
+Draw curves
+Make frame timeline with x/y coordinates of curve based on tempo
 
 */
 //#endef NOTES
