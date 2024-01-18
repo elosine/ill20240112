@@ -1,24 +1,12 @@
 //#ef NOTES
 /*
+Use tempoConsts[tempoNum].frameArray to look into curve points array, find closest x and then get y value
+
 Curve Follower see short
 Multiple curves into single frame array
 Multiple tempi
 */
 //#endef NOTES
-function mkCrv() {
-  let gg = mkSvgCrv({
-    svgContainer: canvas.svg,
-    w: WORLD_W,
-    h: NOTATION_H,
-    x: 0,
-    y: 0,
-    pointsArray: curve20240114a,
-    fill: 'none',
-    stroke: 'yellow',
-    strokeW: 3,
-    strokeCap: 'round' //square;round;butt
-  })
-}
 
 //#ef General Variables
 const TEMPO_COLORS = [clr_limeGreen, clr_mustard, clr_brightBlue, clr_brightOrange, clr_lavander, clr_darkRed2, clr_brightGreen, clr_lightGrey, clr_neonMagenta, clr_plum, clr_blueGrey, clr_lightGrey, clr_lightGreen];
@@ -69,11 +57,12 @@ function update() {
 //#ef INIT
 function init() {
   calcScrollingCsrs();
+  calcCurves();
   makeCanvas();
   mkStaffRects();
+  drawCrvs();
   makeScrollingCursors();
 
-  mkCrv();
 
   let ts_Date = new Date(TS.now());
   let tsNowEpochTime_MS = ts_Date.getTime();
@@ -255,6 +244,52 @@ function updateScrollingCsrs() {
 }
 //#endef Scrolling Cursors
 
+//#ef Curves
+let normalizedCurveArray = [];
+
+function drawCrvs() {
+  let gg = mkSvgCrv({
+    svgContainer: canvas.svg,
+    w: WORLD_W,
+    h: NOTATION_H,
+    x: 0,
+    y: 0,
+    pointsArray: curve20240114a,
+    fill: 'none',
+    stroke: 'yellow',
+    strokeW: 3,
+    strokeCap: 'round' //square;round;butt
+  })
+}
+
+function calcCurves() {
+  curve20240114a.forEach((ptObj, ptIx) => {
+    td = {};
+    td['x']  =ptObj.x*WORLD_W;
+    td['y']  =ptObj.y*NOTATION_H;
+    normalizedCurveArray.push(td)
+  });
+
+  tempoConsts.forEach((tempoObj, tempoIx) => {
+    let tFrmAr = tempoObj.frameArray;
+    tFrmAr.forEach((frmObj, frmIx) => {
+      let tx0 = frmObj.absX;
+      for (var i = 1; i < normalizedCurveArray.length; i++) {
+        let tx1 =normalizedCurveArray[i-1].x;
+        let tx2 = normalizedCurveArray[i].x;
+        let ty2 = normalizedCurveArray[i].y;
+
+        if (tx0<=tx2 ) {
+          console.log(tx0 + ' - ' + tx2 + ' - ' + ty2);
+          break;
+        }
+      }
+    });
+  });
+
+
+}
+//#endef Curves
 
 
 
