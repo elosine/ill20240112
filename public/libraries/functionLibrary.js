@@ -1570,6 +1570,54 @@ let pad = function(num, size) {
 }
 //#endef pad
 
+// #ef mkSvgCrv
+let mkSvgCrv = function({
+  svgContainer,
+  w = 200,
+  h = 200,
+  x = 0,
+  y = 0,
+  pointsArray,
+  fill = 'none',
+  stroke = 'yellow',
+  strokeW = 3,
+  strokeCap = 'round' //square;round;butt
+} = {
+  svgContainer,
+  w: 200,
+  h: 200,
+  x: 0,
+  y: 0,
+  pointsArray,
+  fill: 'none',
+  stroke: 'yellow',
+  strokeW: 3,
+  strokeCap: 'round' //square;round;butt
+}) {
+  let tix = x + (pointsArray[0].x * w);
+  let tiy = y + (pointsArray[0].y * h);
+  let d = ["M", tix, tiy];
+  pointsArray.forEach((ptObj, ptIx) => {
+    d.push("L");
+    let tx = ptObj.x * w;
+    let ty = ptObj.y * h;
+    d.push(tx);
+    d.push(ty);
+  });
+  // d.push("Z")
+  d = d.join(" ");
+  let crv = document.createElementNS(SVG_NS, "path");
+  crv.setAttributeNS(null, "d", d);
+  crv.setAttributeNS(null, "stroke-width", strokeW);
+  crv.setAttributeNS(null, "stroke", stroke);
+  crv.setAttributeNS(null, "fill", fill);
+  crv.setAttributeNS(null, "stroke-linecap", strokeCap);
+  svgContainer.appendChild(crv);
+  return crv;
+}
+// #endef mkSvgCrv
+
+
 
 
 

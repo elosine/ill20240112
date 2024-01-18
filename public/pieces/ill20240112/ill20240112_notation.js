@@ -1,8 +1,24 @@
 //#ef NOTES
 /*
-Scrolling Cursors
+Curve Follower see short
+Multiple curves into single frame array
+Multiple tempi
 */
 //#endef NOTES
+function mkCrv() {
+  let gg = mkSvgCrv({
+    svgContainer: canvas.svg,
+    w: WORLD_W,
+    h: NOTATION_H,
+    x: 0,
+    y: 0,
+    pointsArray: curve20240114a,
+    fill: 'none',
+    stroke: 'yellow',
+    strokeW: 3,
+    strokeCap: 'round' //square;round;butt
+  })
+}
 
 //#ef General Variables
 const TEMPO_COLORS = [clr_limeGreen, clr_mustard, clr_brightBlue, clr_brightOrange, clr_lavander, clr_darkRed2, clr_brightGreen, clr_lightGrey, clr_neonMagenta, clr_plum, clr_blueGrey, clr_lightGrey, clr_lightGreen];
@@ -56,6 +72,9 @@ function init() {
   makeCanvas();
   mkStaffRects();
   makeScrollingCursors();
+
+  mkCrv();
+
   let ts_Date = new Date(TS.now());
   let tsNowEpochTime_MS = ts_Date.getTime();
   epochTimeOfLastFrame_MS = tsNowEpochTime_MS;
@@ -235,7 +254,6 @@ function updateScrollingCsrs() {
   });
 }
 //#endef Scrolling Cursors
-
 
 
 
