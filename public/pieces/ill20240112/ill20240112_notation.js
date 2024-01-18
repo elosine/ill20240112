@@ -13,12 +13,13 @@ const VERT_DISTANCE_BETWEEN_LINES = NOTATION_H + GAP_BTWN_NOTATION_LINES;
 const NUM_NOTATION_LINES = 5;
 let WORLD_W = 945;
 let WORLD_H = (NOTATION_H * NUM_NOTATION_LINES) + (GAP_BTWN_NOTATION_LINES * (NUM_NOTATION_LINES - 1));
+const NOTATION_LINE_LENGTH_PX = WORLD_W;
 //Timing
 let FRAMECOUNT = 0;
 const FRAMERATE = 60;
 const MS_PER_FRAME = 1000.0 / FRAMERATE;
 const PX_PER_BEAT = 70;
-const TOTAL_NUM_PX_IN_SCORE = WORLD_W * NUM_NOTATION_LINES;
+const TOTAL_NUM_PX_IN_SCORE = NOTATION_LINE_LENGTH_PX * NUM_NOTATION_LINES;
 //Timesync
 const TS = timesync.create({
   server: '/timesync',
@@ -45,26 +46,20 @@ function animationEngine(timestamp) {
 }
 
 function update() {
-  //Scrolling Cursors
-  totalNumFramesPerTempo.forEach((numFrames, tempoIx) => {
-    let currFrame = FRAMECOUNT % numFrames;
-    updateScrollingCsrs(currFrame, tempoIx);
-    updateBbs(currFrame, tempoIx);
-  });
+  updateScrollingCsrs();
 }
 //#endef Animation Engine
 
 //#ef INIT
-function init() { //runs from html file: ill20231212.html <body onload='init();'></body>
+function init() {
+  calcScrollingCsrs();
   makeCanvas();
   mkStaffRects();
   makeScrollingCursors();
-  calcTimeline();
-  //Initialize clock and start animation engine
-  let ts_Date = new Date(TS.now()); //Date stamp object from TimeSync library
-  let tsNowEpochTime_MS = ts_Date.getTime(); //current time at init in Epoch Time MS
+  let ts_Date = new Date(TS.now());
+  let tsNowEpochTime_MS = ts_Date.getTime();
   epochTimeOfLastFrame_MS = tsNowEpochTime_MS;
-  // requestAnimationFrame(animationEngine); //kick off animation
+  requestAnimationFrame(animationEngine);
 }
 //#endef INIT
 
@@ -122,8 +117,8 @@ function mkStaffRects() {
 //#ef Scrolling Cursors
 let scrollingCursors = [];
 let scrCsrText = [];
-let scrollingCsrY1 = 30;
-let scrollingCsrH = 65;
+let scrollingCsrY1 = 15;
+let scrollingCsrH = 83;
 let scrollingCsrClrs = [];
 let lineY = [];
 for (var i = 0; i < NUM_NOTATION_LINES; i++) {
@@ -172,7 +167,7 @@ tempos.forEach((tempoArr, i) => {
   tempoConsts.push(td);
 });
 
-function calcTimeline() {
+function calcScrollingCsrs() {
   tempoConsts.forEach((tempoObj, tempoIx) => { //run for each tempo
     let frameArray = [];
     let tNumFrames = Math.round(tempoObj.totalDurFrames); //create an array with and index for each frame in the piece per tempo
@@ -226,17 +221,21 @@ function makeScrollingCursors() {
   }
 }
 
-function updateScrollingCsrs(frame, tempoIx) {
-  let tx = tempoConsts[tempoIx].frameArray[frame].x;
-  let ty = tempoConsts[tempoIx].frameArray[frame].y;
-  scrollingCursors[tempoIx].setAttributeNS(null, 'x1', tx);
-  scrollingCursors[tempoIx].setAttributeNS(null, 'x2', tx);
-  scrollingCursors[tempoIx].setAttributeNS(null, 'y1', ty);
-  scrollingCursors[tempoIx].setAttributeNS(null, 'y2', ty + scrollingCsrH);
-  scrCsrText[tempoIx].setAttributeNS(null, 'x', tx - 5);
-  scrCsrText[tempoIx].setAttributeNS(null, 'y', ty - 2);
+function updateScrollingCsrs() {
+  totalNumFramesPerTempo.forEach((numFrames, tempoIx) => {
+    let currFrame = FRAMECOUNT % numFrames;
+    let tx = tempoConsts[tempoIx].frameArray[currFrame].x;
+    let ty = tempoConsts[tempoIx].frameArray[currFrame].y;
+    scrollingCursors[tempoIx].setAttributeNS(null, 'x1', tx);
+    scrollingCursors[tempoIx].setAttributeNS(null, 'x2', tx);
+    scrollingCursors[tempoIx].setAttributeNS(null, 'y1', ty);
+    scrollingCursors[tempoIx].setAttributeNS(null, 'y2', ty + scrollingCsrH);
+    scrCsrText[tempoIx].setAttributeNS(null, 'x', tx - 5);
+    scrCsrText[tempoIx].setAttributeNS(null, 'y', ty - 2);
+  });
 }
 //#endef Scrolling Cursors
+
 
 
 
