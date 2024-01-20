@@ -22,7 +22,7 @@ const NOTATION_LINE_LENGTH_PX = WORLD_W;
 let FRAMECOUNT = 0;
 const FRAMERATE = 60;
 const MS_PER_FRAME = 1000.0 / FRAMERATE;
-const PX_PER_BEAT = 70;
+const PX_PER_BEAT = 30;
 const TOTAL_NUM_PX_IN_SCORE = NOTATION_LINE_LENGTH_PX * NUM_NOTATION_LINES;
 //Timesync
 const TS = timesync.create({
@@ -51,6 +51,7 @@ function animationEngine(timestamp) {
 
 function update() {
   updateScrollingCsrs();
+  updateCrvFollow();
 }
 //#endef Animation Engine
 
@@ -58,12 +59,12 @@ function update() {
 function init() {
   calcScrollingCsrs();
   calcCurves();
+  console.log(curveCoordsByFramePerTempo);
   makeCanvas();
   mkStaffRects();
   drawCrvs();
   makeScrollingCursors();
-
-
+  mkCrvFollower();
   let ts_Date = new Date(TS.now());
   let tsNowEpochTime_MS = ts_Date.getTime();
   epochTimeOfLastFrame_MS = tsNowEpochTime_MS;
@@ -246,6 +247,9 @@ function updateScrollingCsrs() {
 
 //#ef Curves
 let normalizedCurveArray = [];
+let curveCoordsByFramePerTempo = [];
+const CRVFOLLOW_R = 4;
+let crvFollowers = [];
 
 function drawCrvs() {
   let gg = mkSvgCrv({
@@ -265,29 +269,57 @@ function drawCrvs() {
 function calcCurves() {
   curve20240114a.forEach((ptObj, ptIx) => {
     td = {};
-    td['x']  =ptObj.x*WORLD_W;
-    td['y']  =ptObj.y*NOTATION_H;
+    td['x'] = ptObj.x * WORLD_W;
+    td['y'] = ptObj.y * NOTATION_H;
     normalizedCurveArray.push(td)
   });
-
   tempoConsts.forEach((tempoObj, tempoIx) => {
     let tFrmAr = tempoObj.frameArray;
+    let tCrvPtsThisTempo = [];
     tFrmAr.forEach((frmObj, frmIx) => {
+      let td = {};
+      td['x'] = frmObj.x;
       let tx0 = frmObj.absX;
+      let tLineNum = Math.floor(tx0 / NOTATION_LINE_LENGTH_PX);
+      let ty2 = (NOTATION_H / 2) + ((NOTATION_H + GAP_BTWN_NOTATION_LINES) * tLineNum);
       for (var i = 1; i < normalizedCurveArray.length; i++) {
-        let tx1 =normalizedCurveArray[i-1].x;
+        let tx1 = normalizedCurveArray[i - 1].x;
         let tx2 = normalizedCurveArray[i].x;
-        let ty2 = normalizedCurveArray[i].y;
-
-        if (tx0<=tx2 ) {
-          console.log(tx0 + ' - ' + tx2 + ' - ' + ty2);
-          break;
+        if (tx0 <= tx2 && tx0 > tx1) {
+          ty2 = normalizedCurveArray[i].y + ((NOTATION_H + GAP_BTWN_NOTATION_LINES) * tLineNum);
         }
       }
+      td['y'] = ty2
+      tCrvPtsThisTempo.push(td);
     });
+    curveCoordsByFramePerTempo.push(tCrvPtsThisTempo);
   });
+}
 
+function mkCrvFollower() {
+  for (var i = 0; i < tempos.length; i++) {
+    let tCrvF = mkSvgCircle({
+      svgContainer: canvas.svg,
+      cx: 0,
+      cy: 0,
+      r: CRVFOLLOW_R,
+      fill: scrollingCsrClrs[i],
+      stroke: 'none',
+      strokeW: 0
+    });
+    tCrvF.setAttributeNS(null, 'display', 'yes');
+    crvFollowers.push(tCrvF);
+  }
+}
 
+function updateCrvFollow() {
+  totalNumFramesPerTempo.forEach((numFrames, tempoIx) => {
+    let currFrame = FRAMECOUNT % numFrames;
+    let tx = curveCoordsByFramePerTempo[tempoIx][currFrame].x;
+    let ty = curveCoordsByFramePerTempo[tempoIx][currFrame].y;
+    crvFollowers[tempoIx].setAttributeNS(null, 'cx', tx);
+    crvFollowers[tempoIx].setAttributeNS(null, 'cy', ty);
+  });
 }
 //#endef Curves
 
