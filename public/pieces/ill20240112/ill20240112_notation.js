@@ -21,6 +21,7 @@ const MS_PER_FRAME = 1000.0 / FRAMERATE;
 const PX_PER_BEAT = 40;
 const TOTAL_NUM_PX_IN_SCORE = NOTATION_LINE_LENGTH_PX * NUM_NOTATION_LINES;
 const BEATS_PER_LINE = WORLD_W / PX_PER_BEAT;
+let animationIsGo = false;
 //SVG Notation
 const NOTATION_FILE_NAME_PATH = '/pieces/ill20240112/notationSVGs/';
 
@@ -46,7 +47,9 @@ function animationEngine(timestamp) {
     FRAMECOUNT++;
     cumulativeChangeBtwnFrames_MS -= MS_PER_FRAME;
   }
-  requestAnimationFrame(animationEngine);
+  if (animationIsGo) {
+    requestAnimationFrame(animationEngine);
+  }
 }
 
 function update() {
@@ -95,6 +98,8 @@ function makeCanvas() {
     document.documentElement.webkitRequestFullScreen({
       navigationUI: 'hide'
     });
+    animationIsGo = true;
+    requestAnimationFrame(animationEngine);
   });
   canvas['panel'] = tPanel;
   canvas['div'] = tPanel.content;
@@ -337,31 +342,30 @@ function updateCrvFollow() {
 //Loops
 let totalNumFramesPerLoop = [];
 let loops = [{
-    beatA: 6.1,
-    beatB: 10.7,
-    tempoIx: 6
-  } , {
-    beatA: 16,
-    beatB: 23.1,
-    tempoIx: 1
-  }, {
-    beatA: 28.5,
-    beatB: 39,
-    tempoIx: 3
-  }, {
-    beatA: 47.4,
-    beatB: 56.3,
-    tempoIx: 5
-  }, {
-    beatA: 70.9,
-    beatB: 78,
-    tempoIx: 1
-  }, {
-    beatA: 97,
-    beatB: 106,
-    tempoIx: 2
-  }
-];
+  beatA: 6.1,
+  beatB: 10.7,
+  tempoIx: 6
+}, {
+  beatA: 16,
+  beatB: 23.1,
+  tempoIx: 1
+}, {
+  beatA: 28.5,
+  beatB: 39,
+  tempoIx: 3
+}, {
+  beatA: 47.4,
+  beatB: 56.3,
+  tempoIx: 5
+}, {
+  beatA: 70.9,
+  beatB: 78,
+  tempoIx: 1
+}, {
+  beatA: 97,
+  beatB: 106,
+  tempoIx: 2
+}];
 loops.forEach((loopObj, loopIx) => {
   let tLenPx = (loopObj.beatB - loopObj.beatA) * PX_PER_BEAT;
   loops[loopIx]['lenPx'] = tLenPx;
