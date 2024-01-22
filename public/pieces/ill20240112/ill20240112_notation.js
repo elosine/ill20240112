@@ -348,14 +348,19 @@ let loops = [{
     beatA: 28.5,
     beatB: 39,
     tempoIx: 3
+  }, {
+    beatA: 47.4,
+    beatB: 56.3,
+    tempoIx: 5
+  }, {
+    beatA: 70.9,
+    beatB: 78,
+    tempoIx: 1
+  }, {
+    beatA: 97,
+    beatB: 106,
+    tempoIx: 2
   }
-  // , {
-  //   beatA: 24,
-  //   beatB: 27,
-  //   tempoIx: 3,
-  //   leftY: lineY[2],
-  //   rightY: lineY[2]
-  // }
 ];
 loops.forEach((loopObj, loopIx) => {
   let tLenPx = (loopObj.beatB - loopObj.beatA) * PX_PER_BEAT;
