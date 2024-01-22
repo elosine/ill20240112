@@ -1599,8 +1599,8 @@ let mkSvgCrv = function({
   let d = ["M", tix, tiy];
   pointsArray.forEach((ptObj, ptIx) => {
     d.push("L");
-    let tx = ptObj.x * w;
-    let ty = ptObj.y * h;
+    let tx =  x + (ptObj.x * w);
+    let ty =  y + (ptObj.y * h);
     d.push(tx);
     d.push(ty);
   });

@@ -1,10 +1,6 @@
 //#ef NOTES
 /*
-Use tempoConsts[tempoNum].frameArray to look into curve points array, find closest x and then get y value
-
-Curve Follower see short
-Multiple curves into single frame array
-Multiple tempi
+look at calcLoopsData to add crvFollowers
 */
 //#endef NOTES
 
@@ -22,8 +18,12 @@ const NOTATION_LINE_LENGTH_PX = WORLD_W;
 let FRAMECOUNT = 0;
 const FRAMERATE = 60;
 const MS_PER_FRAME = 1000.0 / FRAMERATE;
-const PX_PER_BEAT = 30;
+const PX_PER_BEAT = 40;
 const TOTAL_NUM_PX_IN_SCORE = NOTATION_LINE_LENGTH_PX * NUM_NOTATION_LINES;
+const BEATS_PER_LINE = WORLD_W / PX_PER_BEAT;
+//SVG Notation
+const NOTATION_FILE_NAME_PATH = '/pieces/ill20240112/notationSVGs/';
+
 //Timesync
 const TS = timesync.create({
   server: '/timesync',
@@ -52,6 +52,7 @@ function animationEngine(timestamp) {
 function update() {
   updateScrollingCsrs();
   updateCrvFollow();
+  updateLoops();
 }
 //#endef Animation Engine
 
@@ -59,10 +60,14 @@ function update() {
 function init() {
   calcScrollingCsrs();
   calcCurves();
-  console.log(curveCoordsByFramePerTempo);
+  calcLoopsData();
+  calcLoopsFrameArray();
   makeCanvas();
   mkStaffRects();
   drawCrvs();
+  makeLoopBrackets();
+  makeLoopCursors();
+  mkLoopCrvFollower();
   makeScrollingCursors();
   mkCrvFollower();
   let ts_Date = new Date(TS.now());
@@ -101,7 +106,7 @@ function makeCanvas() {
     y: 0,
   });
   //Change Background Color of svg container tSvg.style.backgroundColor = clr_mustard
-  tSvg.style.backgroundColor = clr_mustard;
+  tSvg.style.backgroundColor = 'white';
   canvas['svg'] = tSvg;
 }
 
@@ -126,20 +131,18 @@ function mkStaffRects() {
 //#ef Scrolling Cursors
 let scrollingCursors = [];
 let scrCsrText = [];
-let scrollingCsrY1 = 15;
-let scrollingCsrH = 83;
+let scrollingCsrY1 = 0;
+let scrollingCsrH = NOTATION_H;
 let scrollingCsrClrs = [];
-let lineY = [];
-for (var i = 0; i < NUM_NOTATION_LINES; i++) {
-  let ty = scrollingCsrY1 + ((NOTATION_H + GAP_BTWN_NOTATION_LINES) * i);
-  lineY.push(ty);
-}
-let tempos = [
+let tempos = [ //initialTempo, finalTempo, text to include on cursor
   [60, 60, ''],
+  [53, 53, ''],
+  [111.43, 111.43, ''],
   [37.14, 37.14, ''],
-  [96.92, 37.14, 'd'],
-  [32.3, 86.67, 'a'],
-  [86.67, 86.67, '']
+  [113, 31, 'd'],
+  [63, 131, 'a'],
+  [47, 152, 'a'],
+  [96.92, 96.92, '']
 ];
 let totalNumFramesPerTempo = [];
 let tempoConsts = [];
@@ -216,7 +219,7 @@ function makeScrollingCursors() {
     let tTxt = mkSvgText({
       svgContainer: canvas.svg,
       x: 0,
-      y: scrollingCsrY1,
+      y: (scrollingCsrY1 - 130),
       fill: scrollingCsrClrs[i],
       stroke: scrollingCsrClrs[i],
       strokeW: 1,
@@ -239,8 +242,8 @@ function updateScrollingCsrs() {
     scrollingCursors[tempoIx].setAttributeNS(null, 'x2', tx);
     scrollingCursors[tempoIx].setAttributeNS(null, 'y1', ty);
     scrollingCursors[tempoIx].setAttributeNS(null, 'y2', ty + scrollingCsrH);
-    scrCsrText[tempoIx].setAttributeNS(null, 'x', tx - 5);
-    scrCsrText[tempoIx].setAttributeNS(null, 'y', ty - 2);
+    scrCsrText[tempoIx].setAttributeNS(null, 'x', tx - 11);
+    scrCsrText[tempoIx].setAttributeNS(null, 'y', ty + scrollingCsrH - 3);
   });
 }
 //#endef Scrolling Cursors
@@ -250,24 +253,31 @@ let normalizedCurveArray = [];
 let curveCoordsByFramePerTempo = [];
 const CRVFOLLOW_R = 4;
 let crvFollowers = [];
+let curves = []
 
 function drawCrvs() {
-  let gg = mkSvgCrv({
-    svgContainer: canvas.svg,
-    w: WORLD_W,
-    h: NOTATION_H,
-    x: 0,
-    y: 0,
-    pointsArray: curve20240114a,
-    fill: 'none',
-    stroke: 'yellow',
-    strokeW: 3,
-    strokeCap: 'round' //square;round;butt
-  })
+  let crvArPerLine = [curve20240120_001, curve20240120_002, curve20240120_003, curve20240120_004, curve20240120_005];
+
+  crvArPerLine.forEach((ptAr, crvIx) => {
+    let ty = (NOTATION_H + GAP_BTWN_NOTATION_LINES) * crvIx;
+    let tcrv = mkSvgCrv({
+      svgContainer: canvas.svg,
+      w: WORLD_W,
+      h: NOTATION_H,
+      x: 0,
+      y: ty,
+      pointsArray: ptAr,
+      fill: 'none',
+      stroke: clr_limeGreen,
+      strokeW: 3,
+      strokeCap: 'round' //square;round;butt
+    })
+    curves.push(tcrv);
+  });
 }
 
 function calcCurves() {
-  curve20240114a.forEach((ptObj, ptIx) => {
+  combinedCurve20240120.forEach((ptObj, ptIx) => {
     td = {};
     td['x'] = ptObj.x * WORLD_W;
     td['y'] = ptObj.y * NOTATION_H;
@@ -322,6 +332,159 @@ function updateCrvFollow() {
   });
 }
 //#endef Curves
+
+//#ef Loops
+//Loops
+let totalNumFramesPerLoop = [];
+let loops = [{
+    beatA: 6.1,
+    beatB: 10.7,
+    tempoIx: 6
+  } , {
+    beatA: 16,
+    beatB: 23.1,
+    tempoIx: 1
+  }, {
+    beatA: 28.5,
+    beatB: 39,
+    tempoIx: 3
+  }
+  // , {
+  //   beatA: 24,
+  //   beatB: 27,
+  //   tempoIx: 3,
+  //   leftY: lineY[2],
+  //   rightY: lineY[2]
+  // }
+];
+loops.forEach((loopObj, loopIx) => {
+  let tLenPx = (loopObj.beatB - loopObj.beatA) * PX_PER_BEAT;
+  loops[loopIx]['lenPx'] = tLenPx;
+  let tpixa = (loopObj.beatA % BEATS_PER_LINE) * PX_PER_BEAT;
+  loops[loopIx]['beatApxX'] = tpixa;
+});
+let loopCursors = [];
+let loopsFrameArray = [];
+let loopClr = 'yellow';
+let loopCrvFollowers = [];
+
+function calcLoopsData() {
+  for (let loopIx = 0; loopIx < loops.length; loopIx++) {
+    let tLoopObj = loops[loopIx];
+    //Which pixel does the first beat of loop occur on?
+    let tBeatApx = tLoopObj.beatA * PX_PER_BEAT;
+    let tBeatBpx = tLoopObj.beatB * PX_PER_BEAT;
+    // find the frame this pixel is in for the assigned tempo
+    let tB1Frame, tB2Frame;
+    for (let frmIx = 1; frmIx < tempoConsts[tLoopObj.tempoIx].frameArray.length; frmIx++) {
+      let tThisX = tempoConsts[tLoopObj.tempoIx].frameArray[frmIx].absX;
+      let tLastX = tempoConsts[tLoopObj.tempoIx].frameArray[frmIx - 1].absX;
+      if (tBeatApx >= tLastX && tBeatApx < tThisX) {
+        tB1Frame = frmIx - 1;
+        loops[loopIx]['frameA'] = tB1Frame;
+      }
+      if (tBeatBpx >= tLastX && tBeatBpx < tThisX) {
+        tB2Frame = frmIx - 1;
+        loops[loopIx]['frameB'] = tB2Frame;
+      }
+    }
+    let tNumFramesInLoop = tB2Frame - tB1Frame;
+    loops[loopIx]['numFrames'] = tNumFramesInLoop;
+    totalNumFramesPerLoop.push(tNumFramesInLoop);
+  }
+
+}
+
+function calcLoopsFrameArray() {
+  loops.forEach((lpObj, lpIx) => {
+    let tempoFrameArray = tempoConsts[lpObj.tempoIx].frameArray;
+    let tNumFrames = lpObj.numFrames;
+    let tfrmArray = [];
+    for (var frmIx = 0; frmIx < tNumFrames; frmIx++) {
+      let td = {};
+      let tIx = frmIx + lpObj.frameA;
+      td['x'] = tempoFrameArray[tIx].x;
+      td['y'] = tempoFrameArray[tIx].y;
+      td['crvY'] = curveCoordsByFramePerTempo[lpObj.tempoIx][tIx].y;
+      tfrmArray.push(td);
+    }
+    loopsFrameArray.push(tfrmArray);
+  });
+}
+
+function makeLoopCursors() {
+  for (var i = 0; i < loops.length; i++) {
+    let tCsr = mkSvgLine({
+      svgContainer: canvas.svg,
+      x1: 0,
+      y1: scrollingCsrY1,
+      x2: 0,
+      y2: scrollingCsrY1 + scrollingCsrH,
+      stroke: loopClr,
+      strokeW: 3
+    });
+    tCsr.setAttributeNS(null, 'stroke-linecap', 'round');
+    tCsr.setAttributeNS(null, 'display', 'yes');
+    loopCursors.push(tCsr);
+  }
+}
+
+function makeLoopBrackets() {
+  loopsFrameArray.forEach((loopObj, loopIx) => {
+    let ty1 = loopObj[0].y;
+    let tx1 = loopObj[0].x;
+    let tSvgImage = document.createElementNS(SVG_NS, "image");
+    tSvgImage.setAttributeNS(XLINK_NS, 'xlink:href', NOTATION_FILE_NAME_PATH + 'leftBracket_white.svg');
+    tSvgImage.setAttributeNS(null, "y", ty1);
+    tSvgImage.setAttributeNS(null, "x", tx1);
+    tSvgImage.setAttributeNS(null, "visibility", 'visible');
+    tSvgImage.setAttributeNS(null, "display", 'yes');
+    canvas.svg.appendChild(tSvgImage);
+    let ty2 = loopObj[loopObj.length - 1].y;
+    let tx2 = loopObj[loopObj.length - 1].x;
+    let tSvgImageR = document.createElementNS(SVG_NS, "image");
+    tSvgImageR.setAttributeNS(XLINK_NS, 'xlink:href', NOTATION_FILE_NAME_PATH + 'rightBracket_white.svg');
+    tSvgImageR.setAttributeNS(null, "y", ty2);
+    tSvgImageR.setAttributeNS(null, "x", tx2);
+    tSvgImageR.setAttributeNS(null, "visibility", 'visible');
+    tSvgImageR.setAttributeNS(null, "display", 'yes');
+    canvas.svg.appendChild(tSvgImageR);
+  });
+}
+
+function mkLoopCrvFollower() {
+  for (var i = 0; i < loops.length; i++) {
+    let tCrvF = mkSvgCircle({
+      svgContainer: canvas.svg,
+      cx: 0,
+      cy: 0,
+      r: CRVFOLLOW_R,
+      fill: loopClr,
+      stroke: 'none',
+      strokeW: 0
+    });
+    tCrvF.setAttributeNS(null, 'display', 'yes');
+    loopCrvFollowers.push(tCrvF);
+  }
+}
+
+function updateLoops() {
+  totalNumFramesPerLoop.forEach((numFrames, loopIx) => {
+    let currFrame = FRAMECOUNT % numFrames;
+    let tx = loopsFrameArray[loopIx][currFrame].x;
+    let ty = loopsFrameArray[loopIx][currFrame].y;
+    let tcfy = loopsFrameArray[loopIx][currFrame].crvY;
+    loopCursors[loopIx].setAttributeNS(null, 'x1', tx);
+    loopCursors[loopIx].setAttributeNS(null, 'x2', tx);
+    loopCursors[loopIx].setAttributeNS(null, 'y1', ty);
+    loopCursors[loopIx].setAttributeNS(null, 'y2', ty + scrollingCsrH);
+    //loop crv follow
+    loopCrvFollowers[loopIx].setAttributeNS(null, 'cx', tx);
+    loopCrvFollowers[loopIx].setAttributeNS(null, 'cy', tcfy);
+  });
+}
+//#endef Loops
+
 
 
 
